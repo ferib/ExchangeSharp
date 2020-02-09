@@ -164,12 +164,19 @@ namespace ExchangeSharp
         /// <returns>Order result and message string if any</returns>
         Task<ExchangeOrderResult> PlaceOrderAsync(ExchangeOrderRequest order);
 
-        /// <summary>
-        /// Place bulk orders
-        /// </summary>
-        /// <param name="orders">Order requests</param>
-        /// <returns>Order results, each result matches up with each order in index</returns>
-        Task<ExchangeOrderResult[]> PlaceOrdersAsync(params ExchangeOrderRequest[] orders);
+		/// <summary>
+		/// Place an order
+		/// </summary>
+		/// <param name="order">Order request</param>
+		/// <returns>Order result and message string if any</returns>
+		Task<ExchangeOrderResult> PlaceOCOOrderAsync(ExchangeOrderRequest order);
+
+		/// <summary>
+		/// Place bulk orders
+		/// </summary>
+		/// <param name="orders">Order requests</param>
+		/// <returns>Order results, each result matches up with each order in index</returns>
+		Task<ExchangeOrderResult[]> PlaceOrdersAsync(params ExchangeOrderRequest[] orders);
 
         /// <summary>
         /// Get details of an order

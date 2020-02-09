@@ -196,6 +196,7 @@ namespace ExchangeSharp
             return resp.ToArray();
         }
 
+
         protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
         {
             await EnsureInstrumentIdsAvailable();

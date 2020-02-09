@@ -112,6 +112,7 @@ namespace ExchangeSharp
         protected virtual Task<Dictionary<string, decimal>> OnGetFeesAsync() => throw new NotImplementedException();
         protected virtual Task<Dictionary<string, decimal>> OnGetAmountsAvailableToTradeAsync() => throw new NotImplementedException();
         protected virtual Task<ExchangeOrderResult> OnPlaceOrderAsync(ExchangeOrderRequest order) => throw new NotImplementedException();
+        protected virtual Task<ExchangeOrderResult> OnPlaceOCOOrderAsync(ExchangeOrderRequest order) => throw new NotImplementedException();
         protected virtual Task<ExchangeOrderResult[]> OnPlaceOrdersAsync(params ExchangeOrderRequest[] order) => throw new NotImplementedException();
         protected virtual Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string? marketSymbol = null) => throw new NotImplementedException();
         protected virtual Task<IEnumerable<ExchangeOrderResult>> OnGetOpenOrderDetailsAsync(string? marketSymbol = null) => throw new NotImplementedException();
@@ -758,12 +759,25 @@ namespace ExchangeSharp
             return await OnPlaceOrderAsync(order);
         }
 
-        /// <summary>
-        /// Place bulk orders
-        /// </summary>
-        /// <param name="orders">Order requests</param>f
-        /// <returns>Order results, each result matches up with each order in index</returns>
-        public virtual async Task<ExchangeOrderResult[]> PlaceOrdersAsync(params ExchangeOrderRequest[] orders)
+		/// <summary>
+		/// Place an order
+		/// </summary>
+		/// <param name="order">The OCO order request (hacky but works)</param>
+		/// <returns>Result</returns>
+		public virtual async Task<ExchangeOrderResult> PlaceOCOOrderAsync(ExchangeOrderRequest order)
+		{
+			// *NOTE* do not wrap in CacheMethodCall
+			await new SynchronizationContextRemover();
+			order.MarketSymbol = NormalizeMarketSymbol(order.MarketSymbol);
+			return await OnPlaceOCOOrderAsync(order);
+		}
+
+		/// <summary>
+		/// Place bulk orders
+		/// </summary>
+		/// <param name="orders">Order requests</param>f
+		/// <returns>Order results, each result matches up with each order in index</returns>
+		public virtual async Task<ExchangeOrderResult[]> PlaceOrdersAsync(params ExchangeOrderRequest[] orders)
         {
             // *NOTE* do not wrap in CacheMethodCall
             await new SynchronizationContextRemover();

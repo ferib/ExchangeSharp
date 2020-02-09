@@ -586,6 +586,39 @@ namespace ExchangeSharp.BinanceGroup
 			return ParseOrder(token);
 		}
 
+		protected override async Task<ExchangeOrderResult> OnPlaceOCOOrderAsync(ExchangeOrderRequest order)
+		{
+			Dictionary<string, object> payload = await GetNoncePayloadAsync();
+			payload["symbol"] = order.MarketSymbol;
+			payload["side"] = order.IsBuy ? "BUY" : "SELL";
+			if (order.OrderType == OrderType.Stop)
+				payload["type"] = "STOP_LOSS";//if order type is stop loss/limit, then binance expect word 'STOP_LOSS' inestead of 'STOP'
+			else
+				payload["type"] = order.OrderType.ToStringUpperInvariant();
+
+			// Binance has strict rules on which prices and quantities are allowed. They have to match the rules defined in the market definition.
+			decimal outputQuantity = await ClampOrderQuantity(order.MarketSymbol, order.Amount);
+			decimal outputPrice = await ClampOrderPrice(order.MarketSymbol, order.Price);
+
+			// Binance does not accept quantities with more than 20 decimal places.
+			payload["quantity"] = Math.Round(outputQuantity, 20);
+			payload["newOrderRespType"] = "FULL";
+
+			if (order.OrderType != OrderType.Market)
+			{
+				payload["timeInForce"] = "GTC";
+				payload["price"] = outputPrice;
+			}
+			order.ExtraParameters.CopyTo(payload);
+
+			JToken? token = await MakeJsonRequestAsync<JToken>("/order/oco", BaseUrlPrivate, payload, "POST");
+			if (token is null)
+			{
+				return null;
+			}
+			return ParseOrder(token);
+		}
+
 		protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string? marketSymbol = null)
 		{
 			Dictionary<string, object> payload = await GetNoncePayloadAsync();
